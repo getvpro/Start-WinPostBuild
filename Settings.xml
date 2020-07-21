@@ -1,0 +1,28 @@
+
+<!--
+This file is used to define key settings for the Run-PostBuild.ps1 script
+
+.NOTES
+
+July 19, 2020
+-Initial creation
+
+July 20, 2020
+-Added DVD drive letter variable
+-Added VMware tools variable
+-Added chocolatey install variable
+
+-->
+<Properties>
+    <Global>        
+        
+        <ADdomain>YourDomain.loc</ADdomain>        
+        <SRCScripts>\\FILER.YOURDOMAINFQDN\SUBFOLDER\SCRIPTS</SRCScripts>
+        <MSSYSTools>\\FILER.YOURDOMAINFQDN\SUBFOLDER\SYSTEM TOOLS</MSSYSTools>
+        <VMWARETools>\\FILER.YOURDOMAINFQDN\SUBFOLDER\VMWare\VMware Tools\Current</VMWARETools>
+        <DVDLetter>R</DVDLetter>
+        <Choco>Y</Choco>
+        
+    </Global>
+
+</Properties>
