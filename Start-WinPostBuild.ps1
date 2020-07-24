@@ -83,6 +83,13 @@ July 20, 2020
 - Microsoft Sys internals tools path now read as a variable from settings.xml
 - Install detection logic added to Win 10 "add-windowscapability" section
 
+July 23, 2020
+-Added setup64.exe to vmware tools install call
+-Updated VMware tools function
+
+July 24, 2020
+-Run-PostBuild changed to Start-PostBuild on copy of StaticNIC.pst copy
+
 #> 
 
 $RunningPath = Split-Path $MyInvocation.MyCommand.Path -Parent
@@ -117,15 +124,19 @@ IF ($DVD) {
 
 }
 
-function Get-VMToolsInstalled {    
+Function Get-VMToolsInstalled {
     
-    $x86 = ((Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall") |
-        Where-Object { $_.GetValue( "DisplayName" ) -like "*VMware Tools*" } ).Length -gt 0;
+    IF (((Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall") | Where-Object { $_.GetValue( "DisplayName" ) -like "*VMware Tools*" } ).Length -gt 0) {
+        
+        [int]$Version = "32"
+    }
 
-    $x64 = ((Get-ChildItem "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall") |
-        Where-Object { $_.GetValue( "DisplayName" ) -like "*VMware Tools*" } ).Length -gt 0;
+    IF (((Get-ChildItem "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall") | Where-Object { $_.GetValue( "DisplayName" ) -like "*VMware Tools*" } ).Length -gt 0) {
 
-    return $x86 -or $x64;
+       [int]$Version = "64"
+    }    
+
+    return $Version
 }
 
 write-host "Disabling NetBIOS on all adapters" -ForegroundColor cyan
@@ -145,7 +156,7 @@ IF ((Get-WMIObject -class win32_operatingsystem).Caption -like "*Server*") {
 ### Update / create script files under c:\Scripts
 write-host "Copying logon script to c:\Scripts" -foregroundcolor cyan
 IF (!(test-path c:\Scripts)) {new-item c:\Scripts -Type Directory}
-copy-item $SrcScripts\Run-PostBuild\StaticNIC.ps1 c:\Scripts -force
+copy-item $SrcScripts\Start-PostBuild\StaticNIC.ps1 c:\Scripts -force
 
 ### install chocolatey
 
@@ -256,15 +267,14 @@ Else {Write-host "Not required"}
 ### VMware Tools silent install
 
 If ((Get-WMIObject -class Win32_computersystem).Model -like "VMWARE*") {
-
-Get-VMToolsInstalled
-
-    IF ((Get-VMToolsInstalled) -eq $False) {
+    
+    IF ((Get-VMToolsInstalled).Length -eq "0") {
+    
 
         write-host "Starting VMWARE Tools silent install"
         write-host "`r`n"
 
-        start-process -FilePath $VMWARETools -argumentlist @('/s /v /qn reboot=r') -wait
+        start-process -FilePath "$VMWARETools\setup64.exe" -argumentlist @('/s /v /qn reboot=r') -wait
 
     }
 
